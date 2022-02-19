@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "draw": "^0.0.0",
+    "greiner-hormann": "^1.4.2",
+    "leaflet": "^1.7.1",
+    "leaflet-draw": "^1.0.4"
+  }
+}

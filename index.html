@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaflet</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+        integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+        crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+        integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+        crossorigin=""></script>
+
+    <style>
+        #map {
+            width: 100%;
+            height: 100vh;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div id="map">
+
+
+    </div>
+
+</body>
+
+</html>
+
+<script src="./moroccoJson.js"></script>
+<script src="./polygon1.js"></script>
+<script src="./rect.js"></script>
+
+<script src="./node_modules/greiner-hormann/dist/greiner-hormann.leaflet.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.js"></script>
+
+<script>
+
+  
+ 
+/*const osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+const osm = L.tileLayer(osmUrl, { maxZoom: 18 });
+const map = new L.Map('map', {
+  layers: [osm],
+  center: new L.LatLng(38.8977, -77.0366),
+  zoom: 15,
+});
+const drawnItems = new L.FeatureGroup();
+map.addLayer(drawnItems);
+
+const drawControl = new L.Control.Draw({
+  position: 'topright',
+  draw: {},
+  edit: {
+    featureGroup: drawnItems,
+    remove: true,
+    buffer: {
+      replacePolylines: false,
+      separateBuffer: false,
+    },
+  },
+});
+map.addControl(drawControl);*/
+
+var map = L.map('map')
+
+    .setView([33.90170773699566,-6.336403224941068], 14.4),
+    geoJSON = {
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -6.335270404815673,
+              33.9055242710522
+            ],
+            [
+              -6.337780952453613,
+              33.903992685230826
+            ],
+            [
+              -6.3379740715026855,
+              33.903992685230826
+            ],
+            [
+              -6.338403224945068,
+              33.90370773599565
+            ],
+            [
+              -6.337931156158447,
+              33.9031200251902
+            ],
+            [
+              -6.337394714355469,
+              33.902496691120845
+            ],
+            [
+              -6.337480545043945,
+              33.90219392721423
+            ],
+            [
+              -6.339089870452881,
+              33.901232199437864
+            ],
+            [
+              -6.3367295265197745,
+              33.89838257196619
+            ],
+            [
+              -6.33512020111084,
+              33.89838257196619
+            ],
+            [
+              -6.331086158752441,
+              33.901214389561915
+            ],
+            [
+              -6.335270404815673,
+              33.9055242710522
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+};
+
+// add an OpenStreetMap tile layer
+L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; ' +
+            '<a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+    })
+    .addTo(map);
+
+// Initialise the FeatureGroup to store editable layers
+var drawnItems = new L.GeoJSON(geoJSON);
+map.addLayer(drawnItems);
+
+var markers = new L.FeatureGroup();
+map.addLayer(markers);
+
+// Initialise the draw control and pass it the FeatureGroup of
+// editable layers
+var drawControl = new L.Control.Draw({
+        draw: {
+            polyline: false,
+            circle: false,
+            marker: false,
+            circlemarker: false
+        },
+        edit: {
+            featureGroup: drawnItems
+        }
+    }),
+    polygons;
+map.addControl(drawControl);
+
+// add it to the map
+map.on('draw:created', function(evt) {
+    drawnItems.addLayer(evt.layer);
+});
+
+// scan for collisions
+map.on('draw:created', function(evt) {
+    var features = drawnItems.getLayers(),
+        feature = evt.layer,
+        collisionPolygonOptions = {
+            color: '#f00',
+            fillColor: '#f00'
+        },
+        otherFeature, intersection, polygon;
+
+    function addIntersectionPolygon(intersection) {
+        var polygon = new L.Polygon(intersection, collisionPolygonOptions)
+        polygon.addTo(map);
+        polygons.push(polygon);
+    }
+
+    for (var i = 0, len = features.length; i < len; i++) {
+        otherFeature = features[i];
+        if (otherFeature === feature) {
+            continue;
+        }
+
+        intersection = greinerHormann.intersection(otherFeature, feature);
+        console.log(otherFeature, feature);
+        console.log(intersection);
+
+        polygons = [];
+
+        if (intersection) {
+            if (typeof intersection[0][0] === 'number') {
+                addIntersectionPolygon(intersection);
+            } else { // multiple
+                for (var i = 0, len = intersection.length; i < len; i++) {
+                    addIntersectionPolygon(intersection[i]);
+                }
+            }
+        }
+    }
+});
+
+// expose
+window.map = map;
+window.drawnItems = drawnItems;
+window.polygons = polygons;
+
+window.markers = markers;
+
+</script>
