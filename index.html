@@ -72,7 +72,7 @@ map.addControl(drawControl);*/
 
 var map = L.map('map')
 
-    .setView([33.90170773699566,-6.336403224941068], 14.4),
+    .setView([33.90170773699566,-6.336403224941068], 14.35),
     geoJSON = {
   "type": "FeatureCollection",
   "features": [
@@ -195,7 +195,7 @@ map.on('draw:created', function(evt) {
             continue;
         }
 
-        intersection = greinerHormann.intersection(otherFeature, feature);
+        intersection = greinerHormann.union(otherFeature, feature);
         console.log(otherFeature, feature);
         console.log(intersection);
 
